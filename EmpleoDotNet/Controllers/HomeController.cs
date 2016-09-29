@@ -1,30 +1,38 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.ServiceModel.Syndication;
 using System.Web.Mvc;
+using EmpleoDotNet.Repository.Contracts;
+using EmpleoDotNet.Services;
+using EmpleoDotNet.ViewModel;
+using System.Collections.Generic;
+using EmpleoDotNet.Helpers;
 
 namespace EmpleoDotNet.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : EmpleoDotNetController
     {
         public ActionResult Index()
         {
-            return View();
+            ViewBag.SearchViewModel = new JobOpportunitySearchViewModel {
+                CategoriesCount = _jobOpportunityRepository.GetMainJobCategoriesCount()
+            };
+
+            var model = _jobOpportunityRepository.GetLatestJobOpportunity(7);
+            return View(model);
         }
 
-        public ActionResult About()
+        public ActionResult Rss()
+        {         
+            var model = _jobOpportunityRepository.GetLatestJobOpportunity(7);
+            return new RssResult(Constants.RssTitle, Constants.RssDescription, model.ToSyndicationList());
+        }
+
+        public HomeController(IJobOpportunityRepository jobOpportunityRepository)
         {
-            ViewBag.Message = "Your application description page.";
-
-            return View();
+            _jobOpportunityRepository = jobOpportunityRepository;
         }
 
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
-        }
+        private readonly IJobOpportunityRepository _jobOpportunityRepository;
     }
 }
